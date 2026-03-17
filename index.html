@@ -98,7 +98,7 @@
 
   </div>
 
-  <!-- Scripts – ordem importante -->
+    <!-- Scripts – ordem importante -->
   <script src="js/db.js"></script>
   <script src="js/router.js"></script>
   <script src="js/campeonatos.js"></script>
@@ -107,8 +107,9 @@
   <script src="js/jogos.js"></script>
   <script src="js/video.js"></script>
   <script src="js/io.js"></script>
+  <script src="js/dashboard.js"></script>
 
-  <!-- Atualização de estilo ativo nos links -->
+  <!-- Script de active links -->
   <script>
     const allLinks = document.querySelectorAll('.nav-link, .nav-link-mobile');
 
@@ -125,11 +126,7 @@
     window.addEventListener('hashchange', updateActiveLink);
     window.addEventListener('load', updateActiveLink);
 
-    // Força dashboard como default se não houver hash
     if (!window.location.hash) {
       window.location.hash = '#dashboard';
     }
   </script>
-
-</body>
-</html>
