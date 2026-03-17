@@ -1,11 +1,11 @@
 // js/router.js
-// Router simples baseado em hash – com dashboard incluído
+// Router atualizado – atletas só dentro da equipa
 
 const routes = {
   '#dashboard':     () => renderDashboard(),
   '#campeonatos':   () => renderCampeonatos(),
   '#equipas':       () => renderEquipas(),
-  '#atletas':       () => renderAtletas(),
+  // '#atletas':       () => renderAtletas(),   // comentado ou removido
   '#jogos':         () => renderJogos(),
   '#video':         () => renderVideo(),
   '#io':            () => renderIO()
@@ -41,4 +41,4 @@ window.addEventListener('load', () => {
 
 window.Router = { navigate };
 
-console.log("Router carregado – dashboard com estatísticas incluído");
+console.log("Router carregado – atletas agora geridos dentro das equipas");
