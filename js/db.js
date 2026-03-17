@@ -1,5 +1,5 @@
 // js/db.js
-// Wrapper simples e leve para IndexedDB - Handball Analytics
+// Wrapper simples para IndexedDB - agora expõe window.DB.db para transações manuais
 
 let db = null;
 
@@ -21,7 +21,6 @@ async function initDB() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
 
-      // Object Stores
       if (!db.objectStoreNames.contains("campeonatos")) {
         db.createObjectStore("campeonatos", { keyPath: "id", autoIncrement: true });
       }
@@ -47,17 +46,12 @@ async function initDB() {
   });
 }
 
-// ──────────────────────────────────────────────
-// Funções genéricas (todas retornam Promise)
-// ──────────────────────────────────────────────
-
 async function dbAdd(storeName, data) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
     const req = store.add(data);
-
-    req.onsuccess = () => resolve(req.result); // retorna o id gerado
+    req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
@@ -67,7 +61,6 @@ async function dbGetAll(storeName) {
     const tx = db.transaction(storeName, "readonly");
     const store = tx.objectStore(storeName);
     const req = store.getAll();
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -78,7 +71,6 @@ async function dbGet(storeName, id) {
     const tx = db.transaction(storeName, "readonly");
     const store = tx.objectStore(storeName);
     const req = store.get(id);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -89,7 +81,6 @@ async function dbUpdate(storeName, data) {
     const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
     const req = store.put(data);
-
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -100,7 +91,6 @@ async function dbDelete(storeName, id) {
     const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
     const req = store.delete(id);
-
     req.onsuccess = () => resolve(true);
     req.onerror = () => reject(req.error);
   });
@@ -110,13 +100,14 @@ async function dbDelete(storeName, id) {
 initDB()
   .then(() => {
     window.DB = {
+      db: db,               // ← adicionado: acesso direto ao objeto db do IndexedDB
       add: dbAdd,
       getAll: dbGetAll,
       get: dbGet,
       update: dbUpdate,
       delete: dbDelete
     };
-    console.log("DB API disponível em window.DB");
+    console.log("DB API disponível em window.DB (incluindo window.DB.db para transações)");
   })
   .catch(err => {
     console.error("Falha crítica na inicialização da base de dados", err);
