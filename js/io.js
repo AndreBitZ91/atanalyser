@@ -1,6 +1,5 @@
 // js/io.js
-// Exportar e importar dados da aplicação Handball Analytics
-// Após exportar, pergunta se quer limpar os dados
+// Exportar e importar dados – com limpeza após exportação (corrigido para Safari)
 
 async function renderIO() {
   const main = document.getElementById('main-content');
@@ -16,7 +15,7 @@ async function renderIO() {
       <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
         <h3 class="text-xl font-semibold text-navy-darker mb-4">Exportar Base de Dados</h3>
         <p class="text-gray-600 mb-6">
-          Cria um ficheiro JSON com todos os dados atuais. Depois podes escolher limpar a aplicação.
+          Cria um ficheiro JSON com todos os dados. Depois podes escolher limpar a aplicação.
         </p>
 
         <button id="btn-exportar" 
@@ -24,7 +23,7 @@ async function renderIO() {
           ⬇ Exportar Base de Dados
         </button>
 
-        <p id="export-status" class="mt-4 text-center text-sm text-gray-500"></p>
+        <div id="export-status" class="mt-4 text-center text-sm text-gray-500"></div>
       </div>
 
       <!-- IMPORTAR -->
@@ -55,17 +54,14 @@ async function renderIO() {
     </div>
   `;
 
-  // ──────────────────────────────────────────────
   // EXPORTAR + pergunta para limpar
-  // ──────────────────────────────────────────────
-
   document.getElementById('btn-exportar').addEventListener('click', async () => {
     const btn = document.getElementById('btn-exportar');
     const status = document.getElementById('export-status');
 
     btn.disabled = true;
     btn.innerHTML = 'A exportar...';
-    status.textContent = '';
+    status.innerHTML = '';
 
     try {
       const data = {
@@ -89,36 +85,37 @@ async function renderIO() {
       URL.revokeObjectURL(url);
 
       status.innerHTML = `
-        <span class="text-green-600">Exportação concluída com sucesso!</span><br>
-        <span class="text-gray-700 mt-2 block">Queres limpar todos os dados da aplicação agora?</span>
-        <div class="mt-4 flex justify-center gap-4">
-          <button id="btn-limpar-sim" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-800 transition">Sim, limpar tudo</button>
-          <button id="btn-limpar-nao" class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">Não, manter dados</button>
+        <span class="text-green-600 block mb-3">Exportação concluída com sucesso!</span>
+        <span class="text-gray-700 block mb-3">Queres limpar todos os dados da aplicação agora?</span>
+        <div id="limpar-container" class="flex justify-center gap-4">
+          <button class="btn-limpar-sim px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-800 transition">Sim, limpar tudo</button>
+          <button class="btn-limpar-nao px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">Não, manter dados</button>
         </div>
       `;
 
-      // Eventos dos botões de confirmação
-      document.getElementById('btn-limpar-sim').addEventListener('click', async () => {
-        await limparTodosOsDados();
-        status.innerHTML = '<p class="text-green-600 mt-4">Dados limpos com sucesso! A página vai recarregar em 3 segundos...</p>';
-        setTimeout(() => location.reload(), 3000);
-      });
-
-      document.getElementById('btn-limpar-nao').addEventListener('click', () => {
-        status.innerHTML = '<p class="text-gray-600 mt-4">Dados mantidos. Pode continuar a usar a aplicação.</p>';
+      // Delegação de eventos no container (mais seguro no Safari)
+      const limparContainer = document.getElementById('limpar-container');
+      limparContainer.addEventListener('click', async (e) => {
+        const target = e.target;
+        if (target.classList.contains('btn-limpar-sim')) {
+          await limparTodosOsDados();
+          status.innerHTML = '<p class="text-green-600 mt-4">Dados limpos com sucesso! A página vai recarregar em 3 segundos...</p>';
+          setTimeout(() => location.reload(), 3000);
+        } else if (target.classList.contains('btn-limpar-nao')) {
+          status.innerHTML = '<p class="text-gray-600 mt-4">Dados mantidos. Pode continuar a usar a aplicação.</p>';
+        }
       });
 
     } catch (err) {
       console.error(err);
-      status.textContent = 'Erro ao exportar os dados.';
-      status.className = 'mt-4 text-center text-sm text-red-600';
+      status.innerHTML = '<p class="text-red-600">Erro ao exportar os dados.</p>';
     } finally {
       btn.disabled = false;
       btn.innerHTML = '⬇ Exportar Base de Dados';
     }
   });
 
-  // Função auxiliar para limpar todos os dados
+  // Função para limpar todos os dados
   async function limparTodosOsDados() {
     const stores = ['campeonatos', 'equipas', 'atletas', 'jogos', 'eventos_video'];
 
@@ -128,15 +125,12 @@ async function renderIO() {
         const objectStore = transaction.objectStore(storeName);
         const req = objectStore.clear();
         req.onsuccess = resolve;
-        req.onerror = (e) => reject(e.target.error || new Error('Erro ao limpar'));
+        req.onerror = (e) => reject(e.target.error || new Error('Erro ao limpar store'));
       });
     }
   }
 
-  // ──────────────────────────────────────────────
-  // IMPORTAR (mantido igual, mas com verificação extra)
-  // ──────────────────────────────────────────────
-
+  // IMPORTAR (mantido igual, com verificação)
   const fileInput = document.getElementById('file-import');
   const btnImportar = document.getElementById('btn-importar');
   const progressEl = document.getElementById('import-progress');
@@ -178,7 +172,7 @@ async function renderIO() {
 
       progressEl.textContent = `A importar... 0/${totalToImport} registos`;
 
-      // Limpar stores
+      // Limpar
       for (const storeName of stores) {
         await new Promise((resolve, reject) => {
           const transaction = window.DB.transaction(storeName, 'readwrite');
