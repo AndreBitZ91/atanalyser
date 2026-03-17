@@ -1,5 +1,5 @@
 // js/campeonatos.js
-// Gestão e renderização da lista de campeonatos + import semi-manual FPA
+// Gestão de campeonatos + import semi-automático melhorado FPA
 
 async function renderCampeonatos() {
   const main = document.getElementById('main-content');
@@ -11,30 +11,36 @@ async function renderCampeonatos() {
       <div class="flex gap-3">
         <button id="btn-importar-fpa" 
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
-          Importar Prova Oficial FPA
+          Importar Prova Oficial FPA (semi-auto)
         </button>
         <button id="btn-novo-campeonato" 
                 class="px-4 py-2 bg-handball-red text-white rounded-lg hover:bg-red-700 transition font-medium">
-          + Novo Campeonato
+          + Novo Campeonato Manual
         </button>
       </div>
     </div>
 
-    <!-- Formulário de import semi-manual FPA -->
+    <!-- Formulário semi-automático FPA -->
     <div id="form-import-fpa" class="hidden bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8">
-      <h3 class="text-lg font-semibold mb-4">Importar prova do portal.fpa.pt</h3>
+      <h3 class="text-lg font-semibold mb-4">Importar prova do portal.fpa.pt (semi-automático)</h3>
       <p class="text-sm text-gray-600 mb-4">
-        Cole o link da prova (ex: calendário ou resultados). Depois preencha os dados abaixo e crie o campeonato. 
-        Os jogos terão de ser adicionados manualmente depois.
+        1. Cole o link da prova (ex: calendário ou resultados).<br>
+        2. Clique em "Abrir Link + Sugerir Dados" para ver a página e copiar info.<br>
+        3. Confirme / ajuste os campos e crie o campeonato.
       </p>
 
       <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Link da prova (opcional – só para referência)</label>
-        <input type="url" id="url-prova-fpa" placeholder="https://portal.fpa.pt/..." 
+        <label class="block text-sm font-medium text-gray-700 mb-1">Link da prova FPA</label>
+        <input type="url" id="url-prova-fpa" placeholder="https://portal.fpa.pt/prova/..." 
                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <button id="btn-abrir-sugerir" 
+              class="mb-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Abrir Link + Sugerir Dados
+      </button>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Competição *</label>
           <input type="text" id="nome-import" required placeholder="ex: Campeonato Placard Andebol 1" 
@@ -42,21 +48,20 @@ async function renderCampeonatos() {
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Época *</label>
-          <input type="text" id="epoca-import" required placeholder="ex: 2025/26" 
+          <input type="text" id="epoca-import" required placeholder="ex: 2025/26" value="2025/26"
                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
         </div>
-      </div>
-
-      <div class="mt-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Zona / Série / Grupo (opcional)</label>
-        <input type="text" id="zona-import" placeholder="ex: Série A Norte, Zona Sul" 
-               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Zona / Série / Grupo (opcional)</label>
+          <input type="text" id="zona-import" placeholder="ex: Série A Norte" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
+        </div>
       </div>
 
       <div class="mt-6 flex gap-3">
         <button id="btn-criar-import" 
                 class="px-6 py-2 bg-handball-red text-white rounded-lg hover:bg-red-700 transition">
-          Criar Campeonato
+          Criar Campeonato Agora
         </button>
         <button id="btn-cancelar-import" 
                 class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">
@@ -65,7 +70,7 @@ async function renderCampeonatos() {
       </div>
     </div>
 
-    <!-- Formulário normal de novo campeonato -->
+    <!-- Formulário normal manual -->
     <div id="form-campeonato" class="hidden bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8">
       <h3 class="text-lg font-semibold mb-4" id="form-title">Novo Campeonato</h3>
       <form id="form-campeonato-submit">
@@ -112,7 +117,6 @@ async function renderCampeonatos() {
     </div>
   `;
 
-  // Carregar lista inicial
   await loadAndRenderTable();
 
   // Eventos
@@ -122,10 +126,76 @@ async function renderCampeonatos() {
   document.getElementById('btn-cancelar-import').addEventListener('click', hideImportForm);
   document.getElementById('form-campeonato-submit').addEventListener('submit', handleFormSubmit);
   document.getElementById('btn-criar-import').addEventListener('click', handleImportSubmit);
+  document.getElementById('btn-abrir-sugerir').addEventListener('click', abrirLinkESugerir);
 }
 
 // ──────────────────────────────────────────────
-// Formulário normal (já existia)
+// Formulário semi-automático FPA
+// ──────────────────────────────────────────────
+
+function showImportarDeLinkForm() {
+  document.getElementById('form-import-fpa').classList.remove('hidden');
+}
+
+function hideImportForm() {
+  document.getElementById('form-import-fpa').classList.add('hidden');
+}
+
+function abrirLinkESugerir() {
+  const url = document.getElementById('url-prova-fpa').value.trim();
+  if (!url) {
+    alert('Cole o link da prova primeiro.');
+    return;
+  }
+
+  // Abrir link em nova aba para o utilizador ver e copiar info
+  window.open(url, '_blank');
+
+  // Sugestões automáticas baseadas no link (simples parsing da URL)
+  let nomeSugerido = 'Competição FPA';
+  let epocaSugerida = new Date().getFullYear() + '/' + (new Date().getFullYear() + 1);
+  let zonaSugerida = '';
+
+  if (url.includes('masculino')) nomeSugerido = 'Campeonato Nacional Masculino';
+  if (url.includes('feminino')) nomeSugerido = 'Campeonato Nacional Feminino';
+  if (url.includes('1') || url.includes('placard')) nomeSugerido = 'Campeonato Placard Andebol 1';
+  if (url.includes('2')) nomeSugerido = '2ª Divisão';
+  if (url.includes('zona') || url.includes('serie')) zonaSugerida = 'Zona/Série detectada no link';
+
+  document.getElementById('nome-import').value = nomeSugerido;
+  document.getElementById('epoca-import').value = epocaSugerida;
+  document.getElementById('zona-import').value = zonaSugerida;
+
+  alert('Link aberto numa nova aba!\nCopie os dados da página (nome, época, zona, etc.) e ajuste os campos acima.');
+}
+
+async function handleImportSubmit() {
+  const nome = document.getElementById('nome-import').value.trim();
+  const epoca = document.getElementById('epoca-import').value.trim();
+  const zona = document.getElementById('zona-import').value.trim();
+  const url = document.getElementById('url-prova-fpa').value.trim();
+
+  if (!nome || !epoca) {
+    alert('Preencha pelo menos Nome e Época.');
+    return;
+  }
+
+  const data = {
+    nome,
+    epoca,
+    descricao: zona ? `Zona/Série: ${zona}\nFonte: ${url || 'Manual'}` : `Fonte: ${url || 'Manual'}`
+  };
+
+  const novoId = await window.DB.add('campeonatos', data);
+
+  hideImportForm();
+  await loadAndRenderTable();
+
+  alert(`Campeonato "${nome}" criado com sucesso (ID: ${novoId})!\nAgora vá à secção "Jogos" e adicione as jornadas manualmente (equipa A, B, data, local, etc.).`);
+}
+
+// ──────────────────────────────────────────────
+// Restante código (form normal, lista, editar, eliminar) mantido igual
 // ──────────────────────────────────────────────
 
 function showNewForm() {
@@ -181,49 +251,6 @@ async function handleFormSubmit(e) {
   hideForm();
   await loadAndRenderTable();
 }
-
-// ──────────────────────────────────────────────
-// Formulário semi-manual FPA
-// ──────────────────────────────────────────────
-
-function showImportarDeLinkForm() {
-  const form = document.getElementById('form-import-fpa');
-  form.classList.remove('hidden');
-}
-
-function hideImportForm() {
-  const form = document.getElementById('form-import-fpa');
-  form.classList.add('hidden');
-}
-
-async function handleImportSubmit() {
-  const nome = document.getElementById('nome-import').value.trim();
-  const epoca = document.getElementById('epoca-import').value.trim();
-  const zona = document.getElementById('zona-import').value.trim();
-  const url = document.getElementById('url-prova-fpa').value.trim();
-
-  if (!nome || !epoca) {
-    alert('Preencha pelo menos Nome e Época.');
-    return;
-  }
-
-  const data = {
-    nome,
-    epoca,
-    descricao: zona ? `Zona/Série: ${zona}\nFonte: ${url || 'Manual'}` : `Fonte: ${url || 'Manual'}`
-  };
-
-  await window.DB.add('campeonatos', data);
-
-  hideImportForm();
-  await loadAndRenderTable();
-
-  alert('Campeonato criado com sucesso!\nAgora pode adicionar as jornadas e jogos manualmente na lista de jogos.');
-}
-
-// ──────────────────────────────────────────────
-// Lista de campeonatos (já existia)
-// ──────────────────────────────────────────────
 
 async function loadAndRenderTable() {
   const tbody = document.getElementById('campeonatos-tbody');
