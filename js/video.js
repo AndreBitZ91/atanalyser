@@ -1,11 +1,10 @@
 // js/video.js
-// Análise de vídeo - tagging de eventos por timestamp
+// Análise de Vídeo - com criação de clipes (Z = início, X = fim + etiquetar)
 
 async function renderVideo() {
   const main = document.getElementById('main-content');
   if (!main) return;
 
-  // Ler parâmetro da hash: #video?jogoId=5
   const hash = window.location.hash;
   const params = new URLSearchParams(hash.split('?')[1] || '');
   const jogoId = params.get('jogoId') ? Number(params.get('jogoId')) : null;
@@ -19,7 +18,6 @@ async function renderVideo() {
     return;
   }
 
-  // Carregar dados do jogo
   const jogo = await window.DB.get('jogos', jogoId);
   if (!jogo) {
     main.innerHTML = '<div class="text-center py-12 text-red-600">Jogo não encontrado.</div>';
@@ -42,7 +40,7 @@ async function renderVideo() {
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-12rem)]">
-      <!-- ESQUERDA: Player de vídeo -->
+      <!-- ESQUERDA: Player + controles de clipe -->
       <div class="flex flex-col bg-black rounded-lg overflow-hidden shadow-lg">
         <div class="relative flex-1">
           <video id="video-player" class="w-full h-full object-contain" controls></video>
@@ -54,66 +52,88 @@ async function renderVideo() {
             </label>
           </div>
         </div>
+
+        <!-- Controles de clipe -->
+        <div class="p-4 bg-gray-900 text-white flex justify-around text-sm">
+          <div class="text-center">
+            <kbd class="px-3 py-1 bg-gray-700 rounded">Z</kbd>
+            <p>Início do clipe</p>
+            <p id="clip-start-display" class="font-mono mt-1">--:--.--</p>
+          </div>
+          <div class="text-center">
+            <kbd class="px-3 py-1 bg-gray-700 rounded">X</kbd>
+            <p>Fim do clipe + Etiquetar</p>
+            <p id="clip-end-display" class="font-mono mt-1">--:--.--</p>
+          </div>
+        </div>
       </div>
 
-      <!-- DIREITA: Painel de tagging -->
+      <!-- DIREITA: Painel de tagging + form de clipe -->
       <div class="flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-navy-darker">Registar Evento</h3>
+          <h3 class="text-lg font-semibold text-navy-darker">Registar Evento / Clipe</h3>
         </div>
 
         <div class="p-6 space-y-6 flex-1 overflow-y-auto">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Evento</label>
-            <select id="tipo-evento" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
-              <option value="">Seleccione...</option>
-              <option value="Golo">Golo</option>
-              <option value="Falta">Falta</option>
-              <option value="Remate">Remate</option>
-              <option value="Intercepção">Intercepção</option>
-              <option value="2 Minutos">2 Minutos</option>
-              <option value="Livre">Livre</option>
-              <option value="Outro">Outro</option>
-            </select>
+          <!-- Form para clipe (aparece quando X é pressionado) -->
+          <div id="form-clipe" class="hidden bg-yellow-50 p-5 rounded-lg border border-yellow-200">
+            <h4 class="font-medium mb-4">Novo Clipe [ <span id="clipe-tempo"></span> ]</h4>
+            <form id="form-clipe-submit">
+              <input type="hidden" id="clipe-start" value="">
+              <input type="hidden" id="clipe-end" value="">
+
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Evento</label>
+                <select id="tipo-clipe" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                  <option value="">Seleccione...</option>
+                  <option value="Golo">Golo</option>
+                  <option value="Falta">Falta</option>
+                  <option value="Remate">Remate</option>
+                  <option value="Intercepção">Intercepção</option>
+                  <option value="2 Minutos">2 Minutos</option>
+                  <option value="Livre">Livre</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Atleta</label>
+                <select id="atleta-clipe" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                  <option value="">Seleccione...</option>
+                </select>
+              </div>
+
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nota / Descrição</label>
+                <textarea id="nota-clipe" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
+              </div>
+
+              <div class="flex gap-3">
+                <button type="submit" class="px-6 py-2 bg-handball-red text-white rounded-lg hover:bg-red-700">Guardar Clipe</button>
+                <button type="button" id="btn-cancelar-clipe" class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">Cancelar</button>
+              </div>
+            </form>
           </div>
 
+          <!-- Timeline de eventos existentes -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Atleta</label>
-            <select id="atleta-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
-              <option value="">Seleccione...</option>
-            </select>
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">Eventos / Clipes registados</h4>
+            <div id="timeline-eventos" class="space-y-2 max-h-64 overflow-y-auto"></div>
           </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nota (opcional)</label>
-            <textarea id="nota-evento" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red"></textarea>
-          </div>
-
-          <button id="btn-registar-momento" 
-                  class="w-full px-6 py-3 bg-handball-red text-white rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled>
-            📌 Registar Momento (${formatTime(0)})
-          </button>
-        </div>
-
-        <!-- Timeline de eventos -->
-        <div class="p-6 border-t border-gray-200 bg-gray-50">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3">Eventos registados</h4>
-          <div id="timeline-eventos" class="space-y-2 max-h-64 overflow-y-auto"></div>
         </div>
       </div>
     </div>
   `;
 
-  // ──────────────────────────────────────────────
-  // Inicialização
-  // ──────────────────────────────────────────────
-
   const video = document.getElementById('video-player');
   const overlay = document.getElementById('no-video-overlay');
-  const btnRegistar = document.getElementById('btn-registar-momento');
+  const clipStartDisplay = document.getElementById('clip-start-display');
+  const clipEndDisplay = document.getElementById('clip-end-display');
+  const formClipe = document.getElementById('form-clipe');
 
-  // Carregar vídeo do ficheiro local
+  let clipStart = null;
+
+  // Carregar vídeo local
   document.getElementById('video-file-input').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -122,100 +142,126 @@ async function renderVideo() {
     video.src = url;
     video.load();
     overlay.classList.add('hidden');
-
-    // Activar botão quando vídeo estiver pronto
-    video.onloadedmetadata = () => {
-      btnRegistar.disabled = false;
-    };
   });
 
-  // Actualizar tempo no botão em tempo real
-  video.addEventListener('timeupdate', () => {
-    btnRegistar.textContent = `📌 Registar Momento (${formatTime(video.currentTime)})`;
+  // Teclas Z e X
+  document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'z' && video.src) {
+      clipStart = video.currentTime;
+      clipStartDisplay.textContent = formatTime(clipStart);
+      clipEndDisplay.textContent = '--:--.--';
+      e.preventDefault();
+    }
+
+    if (e.key.toLowerCase() === 'x' && video.src && clipStart !== null) {
+      const clipEnd = video.currentTime;
+      if (clipEnd <= clipStart) {
+        alert('O fim do clipe deve ser depois do início.');
+        return;
+      }
+
+      clipEndDisplay.textContent = formatTime(clipEnd);
+
+      // Mostrar e preencher form de clipe
+      formClipe.classList.remove('hidden');
+      document.getElementById('clipe-tempo').textContent = `${formatTime(clipStart)} → ${formatTime(clipEnd)}`;
+      document.getElementById('clipe-start').value = clipStart;
+      document.getElementById('clipe-end').value = clipEnd;
+
+      // Reset para próximo clipe
+      clipStart = null;
+      clipStartDisplay.textContent = '--:--.--';
+      clipEndDisplay.textContent = '--:--.--';
+
+      e.preventDefault();
+    }
   });
 
-  // Carregar atletas das duas equipas
+  // Carregar atletas
   await loadAtletasIntoSelect(jogo.equipaCasaId, jogo.equipaForaId);
 
-  // Carregar eventos existentes
+  // Carregar timeline
   await renderTimeline(jogoId, video);
 
-  // Registar novo evento
-  btnRegistar.addEventListener('click', async () => {
-    const tipo = document.getElementById('tipo-evento').value;
-    const atletaId = document.getElementById('atleta-select').value;
-    const nota = document.getElementById('nota-evento').value.trim();
+  // Guardar clipe
+  document.getElementById('form-clipe-submit').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    if (!tipo || !atletaId) {
-      alert('Seleccione o tipo de evento e o atleta.');
+    const start = Number(document.getElementById('clipe-start').value);
+    const end = Number(document.getElementById('clipe-end').value);
+    const tipo = document.getElementById('tipo-clipe').value;
+    const atletaId = Number(document.getElementById('atleta-clipe').value);
+    const nota = document.getElementById('nota-clipe').value.trim();
+
+    if (!tipo || !atletaId || isNaN(start) || isNaN(end) || start >= end) {
+      alert('Preencha todos os campos e verifique os tempos.');
       return;
     }
 
     const evento = {
-      jogoId: jogoId,
-      timestamp: video.currentTime,
+      jogoId,
+      startTime: start,
+      endTime: end,
       tipo,
-      atletaId: Number(atletaId),
-      nota
+      atletaId,
+      nota,
+      timestamp: start  // para compatibilidade com timeline antiga
     };
 
     await window.DB.add('eventos_video', evento);
+    formClipe.classList.add('hidden');
     await renderTimeline(jogoId, video);
 
-    // Limpar formulário (opcional)
-    document.getElementById('tipo-evento').value = '';
-    document.getElementById('atleta-select').value = '';
-    document.getElementById('nota-evento').value = '';
+    // Limpar form
+    document.getElementById('tipo-clipe').value = '';
+    document.getElementById('atleta-clipe').value = '';
+    document.getElementById('nota-clipe').value = '';
+  });
+
+  // Cancelar form clipe
+  document.getElementById('btn-cancelar-clipe').addEventListener('click', () => {
+    formClipe.classList.add('hidden');
+    clipStart = null;
+    clipStartDisplay.textContent = '--:--.--';
+    clipEndDisplay.textContent = '--:--.--';
   });
 }
 
-// ──────────────────────────────────────────────
-// Funções auxiliares
-// ──────────────────────────────────────────────
-
+// Carregar atletas no select
 async function loadAtletasIntoSelect(equipaCasaId, equipaForaId) {
-  const select = document.getElementById('atleta-select');
+  const select = document.getElementById('atleta-clipe');
   select.innerHTML = '<option value="">Seleccione...</option>';
 
   const atletas = await window.DB.getAll('atletas');
-
   const atletasCasa = atletas.filter(a => a.equipaId == equipaCasaId);
   const atletasFora = atletas.filter(a => a.equipaId == equipaForaId);
 
-  if (atletasCasa.length > 0) {
-    const optgroup = document.createElement('optgroup');
-    optgroup.label = 'Equipa da Casa';
-    atletasCasa.forEach(a => {
-      const opt = new Option(`${a.numero ? a.numero + ' - ' : ''}${a.nome}`, a.id);
-      optgroup.appendChild(opt);
-    });
-    select.appendChild(optgroup);
+  if (atletasCasa.length) {
+    const group = document.createElement('optgroup');
+    group.label = 'Equipa da Casa';
+    atletasCasa.forEach(a => group.appendChild(new Option(`${a.numero || ''} - ${a.nome}`, a.id)));
+    select.appendChild(group);
   }
 
-  if (atletasFora.length > 0) {
-    const optgroup = document.createElement('optgroup');
-    optgroup.label = 'Equipa de Fora';
-    atletasFora.forEach(a => {
-      const opt = new Option(`${a.numero ? a.numero + ' - ' : ''}${a.nome}`, a.id);
-      optgroup.appendChild(opt);
-    });
-    select.appendChild(optgroup);
+  if (atletasFora.length) {
+    const group = document.createElement('optgroup');
+    group.label = 'Equipa de Fora';
+    atletasFora.forEach(a => group.appendChild(new Option(`${a.numero || ''} - ${a.nome}`, a.id)));
+    select.appendChild(group);
   }
 }
 
+// Renderizar timeline (agora suporta clipes com intervalo)
 async function renderTimeline(jogoId, video) {
   const container = document.getElementById('timeline-eventos');
-  if (!container) return;
-
-  let eventos = await window.DB.getAll('eventos_video');
-  eventos = eventos
-    .filter(ev => ev.jogoId === jogoId)
-    .sort((a, b) => a.timestamp - b.timestamp);
-
   container.innerHTML = '';
 
+  let eventos = await window.DB.getAll('eventos_video');
+  eventos = eventos.filter(ev => ev.jogoId === jogoId)
+                   .sort((a, b) => a.timestamp - b.timestamp);
+
   if (eventos.length === 0) {
-    container.innerHTML = '<p class="text-center text-gray-500 py-4">Ainda não há eventos registados.</p>';
+    container.innerHTML = '<p class="text-gray-500 text-center py-4">Ainda não há eventos ou clipes registados.</p>';
     return;
   }
 
@@ -223,7 +269,10 @@ async function renderTimeline(jogoId, video) {
   const mapAtletas = Object.fromEntries(atletas.map(a => [a.id, a.nome || '—']));
 
   eventos.forEach(ev => {
-    const tempo = formatTime(ev.timestamp);
+    const tempo = ev.endTime !== undefined
+      ? `${formatTime(ev.startTime)} → ${formatTime(ev.endTime)}`
+      : formatTime(ev.timestamp);
+
     const nomeAtleta = mapAtletas[ev.atletaId] || '—';
     const notaTexto = ev.nota ? ` — ${ev.nota}` : '';
 
@@ -240,17 +289,15 @@ async function renderTimeline(jogoId, video) {
       </button>
     `;
 
-    // Seek ao clicar na linha
     div.addEventListener('click', (e) => {
       if (!e.target.closest('.btn-delete-evento')) {
-        video.currentTime = ev.timestamp;
+        video.currentTime = ev.startTime || ev.timestamp;
         video.play().catch(() => {});
       }
     });
 
-    // Eliminar evento
     div.querySelector('.btn-delete-evento').addEventListener('click', async () => {
-      if (confirm('Eliminar este evento?')) {
+      if (confirm('Eliminar este evento/clipe?')) {
         await window.DB.delete('eventos_video', ev.id);
         await renderTimeline(jogoId, video);
       }
