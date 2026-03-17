@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Handball Analytics</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -12,15 +14,16 @@
         extend: {
           colors: {
             'handball-red': '#E63946',
-            'navy-dark': '#0F172A',
+            'navy-dark':  '#0F172A',
             'navy-darker': '#020617',
           }
         }
       }
     }
   </script>
+
   <style>
-    /* Esconder scrollbar mas manter funcionalidade */
+    /* Optional: hide scrollbar but keep scrolling functionality */
     ::-webkit-scrollbar { width: 0px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: transparent; }
@@ -36,15 +39,14 @@
     </div>
   </header>
 
-  <!-- Layout principal -->
+  <!-- Main layout wrapper -->
   <div class="flex flex-1 overflow-hidden">
 
-    <!-- Sidebar Desktop -->
+    <!-- Sidebar – Desktop / large screens -->
     <aside id="sidebar"
-          class="hidden md:flex md:flex-col md:w-64 bg-navy-dark text-gray-200 border-r border-navy-darker">
-      
-      <nav class="flex-1 px-3 py-6 space-y-1">
-        <a href="#dashboard" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors" data-active="true">
+          class="hidden md:flex md:flex-col md:w-64 bg-navy-dark text-gray-200 border-r border-navy-darker fixed h-[calc(100%-4rem)] top-16 left-0 z-10">
+      <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+        <a href="#dashboard" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors" aria-current="page">
           <span class="text-xl mr-3">🏠</span>
           <span>Dashboard</span>
         </a>
@@ -75,10 +77,10 @@
       </nav>
     </aside>
 
-    <!-- Bottom Tab Bar – Mobile -->
+    <!-- Bottom navigation – Mobile only -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-navy-dark border-t border-navy-darker z-30">
       <div class="flex justify-around items-center h-16 text-gray-300">
-        <a href="#dashboard" class="nav-link-mobile flex flex-col items-center p-2 active:text-handball-red">
+        <a href="#dashboard" class="nav-link-mobile flex flex-col items-center p-2 text-handball-red">
           <span class="text-2xl">🏠</span>
           <span class="text-xs mt-1">Dash</span>
         </a>
@@ -101,45 +103,47 @@
       </div>
     </nav>
 
-    <!-- Área de conteúdo principal -->
-    <main id="main-content" class="flex-1 overflow-y-auto bg-white p-4 md:p-6">
+    <!-- Main content area -->
+    <main id="main-content"
+          class="flex-1 overflow-y-auto bg-white md:ml-64 pt-2 pb-20 md:pb-6 px-4 md:px-6">
       <div class="max-w-7xl mx-auto">
         <h2 class="text-2xl font-bold text-navy-darker mb-6">Carregando...</h2>
-        <!-- Aqui é onde o JavaScript vai injectar o conteúdo dependendo da hash -->
+        <!-- js/router.js should replace this content based on window.location.hash -->
       </div>
     </main>
 
   </div>
 
-  <!-- Scripts da aplicação (carrega-os na ordem certa) -->
-  <script src="db.js"></script>
-  <script src="router.js"></script>
-  <script src="campeonatos.js"></script>
-  <script src="equipas.js"></script>
-  <script src="atletas.js"></script>
-  <script src="jogos.js"></script>
-  <script src="video.js"></script>
-  <script src="io.js"></script>
+  <!-- Scripts – load in logical order -->
+  <script src="js/db.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/campeonatos.js"></script>
+  <script src="js/equipas.js"></script>
+  <script src="js/atletas.js"></script>
+  <script src="js/jogos.js"></script>
+  <script src="js/video.js"></script>
+  <script src="js/io.js"></script>
 
-  <!-- Script simples para destacar o link activo -->
+  <!-- Basic active link highlighting -->
   <script>
     const allLinks = document.querySelectorAll('.nav-link, .nav-link-mobile');
-    
-    function setActiveLink() {
-      const hash = window.location.hash || '#dashboard';
+
+    function updateActiveLink() {
+      const currentHash = window.location.hash || '#dashboard';
       allLinks.forEach(link => {
-        const isActive = link.getAttribute('href') === hash;
+        const isActive = link.getAttribute('href') === currentHash;
+        // Desktop sidebar
         link.classList.toggle('bg-navy-darker', isActive);
         link.classList.toggle('text-white', isActive);
+        // Mobile bottom bar
         link.classList.toggle('text-handball-red', isActive);
-        link.classList.toggle('active:text-handball-red', isActive); // mobile
       });
     }
 
-    window.addEventListener('hashchange', setActiveLink);
-    window.addEventListener('load', setActiveLink);
+    window.addEventListener('hashchange', updateActiveLink);
+    window.addEventListener('load', updateActiveLink);
 
-    // Clica inicial se não houver hash
+    // Default route if no hash
     if (!window.location.hash) {
       window.location.hash = '#dashboard';
     }
