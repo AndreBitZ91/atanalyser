@@ -23,7 +23,6 @@
   </script>
 
   <style>
-    /* Optional: hide scrollbar but keep scrolling functionality */
     ::-webkit-scrollbar { width: 0px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: transparent; }
@@ -31,7 +30,7 @@
 </head>
 <body class="h-screen bg-gray-50 flex flex-col overflow-hidden">
 
-  <!-- Top Bar -->
+  <!-- Top bar -->
   <header class="bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-6 shadow-sm z-20">
     <div class="flex items-center gap-3">
       <span class="text-2xl">🤾</span>
@@ -39,82 +38,67 @@
     </div>
   </header>
 
-  <!-- Main layout wrapper -->
+  <!-- Layout principal -->
   <div class="flex flex-1 overflow-hidden">
 
-    <!-- Sidebar – Desktop / large screens -->
-    <aside id="sidebar"
-          class="hidden md:flex md:flex-col md:w-64 bg-navy-dark text-gray-200 border-r border-navy-darker fixed h-[calc(100%-4rem)] top-16 left-0 z-10">
+    <!-- Sidebar desktop -->
+    <aside id="sidebar" class="hidden md:flex md:flex-col md:w-64 bg-navy-dark text-gray-200 border-r border-navy-darker fixed h-[calc(100%-4rem)] top-16 left-0 z-10">
       <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-        <a href="#dashboard" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors" aria-current="page">
-          <span class="text-xl mr-3">🏠</span>
-          <span>Dashboard</span>
+        <a href="#dashboard" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">🏠</span> <span>Dashboard</span>
         </a>
         <a href="#campeonatos" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
-          <span class="text-xl mr-3">🏆</span>
-          <span>Campeonatos</span>
+          <span class="text-xl mr-3">🏆</span> <span>Campeonatos</span>
         </a>
         <a href="#equipas" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
-          <span class="text-xl mr-3">👥</span>
-          <span>Equipas</span>
+          <span class="text-xl mr-3">👥</span> <span>Equipas</span>
         </a>
         <a href="#atletas" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
-          <span class="text-xl mr-3">🏃</span>
-          <span>Atletas</span>
+          <span class="text-xl mr-3">🏃</span> <span>Atletas</span>
         </a>
         <a href="#jogos" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
-          <span class="text-xl mr-3">⚽</span>
-          <span>Jogos</span>
+          <span class="text-xl mr-3">⚽</span> <span>Jogos</span>
         </a>
         <a href="#video" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
-          <span class="text-xl mr-3">🎥</span>
-          <span>Análise de Vídeo</span>
+          <span class="text-xl mr-3">🎥</span> <span>Análise de Vídeo</span>
         </a>
         <a href="#io" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
-          <span class="text-xl mr-3">📤📥</span>
-          <span>Exportar/Importar</span>
+          <span class="text-xl mr-3">📤📥</span> <span>Exportar/Importar</span>
         </a>
       </nav>
     </aside>
 
-    <!-- Bottom navigation – Mobile only -->
+    <!-- Bottom bar mobile -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-navy-dark border-t border-navy-darker z-30">
       <div class="flex justify-around items-center h-16 text-gray-300">
-        <a href="#dashboard" class="nav-link-mobile flex flex-col items-center p-2 text-handball-red">
-          <span class="text-2xl">🏠</span>
-          <span class="text-xs mt-1">Dash</span>
+        <a href="#dashboard" class="nav-link-mobile flex flex-col items-center p-2">
+          <span class="text-2xl">🏠</span><span class="text-xs mt-1">Dash</span>
         </a>
         <a href="#campeonatos" class="nav-link-mobile flex flex-col items-center p-2">
-          <span class="text-2xl">🏆</span>
-          <span class="text-xs mt-1">Camp.</span>
+          <span class="text-2xl">🏆</span><span class="text-xs mt-1">Camp.</span>
         </a>
         <a href="#equipas" class="nav-link-mobile flex flex-col items-center p-2">
-          <span class="text-2xl">👥</span>
-          <span class="text-xs mt-1">Equipas</span>
+          <span class="text-2xl">👥</span><span class="text-xs mt-1">Equipas</span>
         </a>
         <a href="#jogos" class="nav-link-mobile flex flex-col items-center p-2">
-          <span class="text-2xl">⚽</span>
-          <span class="text-xs mt-1">Jogos</span>
+          <span class="text-2xl">⚽</span><span class="text-xs mt-1">Jogos</span>
         </a>
         <a href="#video" class="nav-link-mobile flex flex-col items-center p-2">
-          <span class="text-2xl">🎥</span>
-          <span class="text-xs mt-1">Vídeo</span>
+          <span class="text-2xl">🎥</span><span class="text-xs mt-1">Vídeo</span>
         </a>
       </div>
     </nav>
 
-    <!-- Main content area -->
-    <main id="main-content"
-          class="flex-1 overflow-y-auto bg-white md:ml-64 pt-2 pb-20 md:pb-6 px-4 md:px-6">
+    <!-- Conteúdo principal -->
+    <main id="main-content" class="flex-1 overflow-y-auto bg-white md:ml-64 pt-2 pb-20 md:pb-6 px-4 md:px-6">
       <div class="max-w-7xl mx-auto">
-        <h2 class="text-2xl font-bold text-navy-darker mb-6">Carregando...</h2>
-        <!-- js/router.js should replace this content based on window.location.hash -->
+        <h2 class="text-2xl font-bold text-navy-darker mb-6">A carregar...</h2>
       </div>
     </main>
 
   </div>
 
-  <!-- Scripts – load in logical order -->
+  <!-- Scripts – ordem importante -->
   <script src="js/db.js"></script>
   <script src="js/router.js"></script>
   <script src="js/campeonatos.js"></script>
@@ -124,18 +108,16 @@
   <script src="js/video.js"></script>
   <script src="js/io.js"></script>
 
-  <!-- Basic active link highlighting -->
+  <!-- Atualização de estilo ativo nos links -->
   <script>
     const allLinks = document.querySelectorAll('.nav-link, .nav-link-mobile');
 
     function updateActiveLink() {
-      const currentHash = window.location.hash || '#dashboard';
+      const hash = window.location.hash || '#dashboard';
       allLinks.forEach(link => {
-        const isActive = link.getAttribute('href') === currentHash;
-        // Desktop sidebar
+        const isActive = link.getAttribute('href') === hash;
         link.classList.toggle('bg-navy-darker', isActive);
         link.classList.toggle('text-white', isActive);
-        // Mobile bottom bar
         link.classList.toggle('text-handball-red', isActive);
       });
     }
@@ -143,7 +125,7 @@
     window.addEventListener('hashchange', updateActiveLink);
     window.addEventListener('load', updateActiveLink);
 
-    // Default route if no hash
+    // Força dashboard como default se não houver hash
     if (!window.location.hash) {
       window.location.hash = '#dashboard';
     }
