@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Handball Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'handball-red': '#E63946',
+            'navy-dark': '#0F172A',
+            'navy-darker': '#020617',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Esconder scrollbar mas manter funcionalidade */
+    ::-webkit-scrollbar { width: 0px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: transparent; }
+  </style>
+</head>
+<body class="h-screen bg-gray-50 flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-6 shadow-sm z-20">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🤾</span>
+      <h1 class="text-xl md:text-2xl font-bold text-navy-darker">Handball Analytics</h1>
+    </div>
+  </header>
+
+  <!-- Layout principal -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Sidebar Desktop -->
+    <aside id="sidebar"
+          class="hidden md:flex md:flex-col md:w-64 bg-navy-dark text-gray-200 border-r border-navy-darker">
+      
+      <nav class="flex-1 px-3 py-6 space-y-1">
+        <a href="#dashboard" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors" data-active="true">
+          <span class="text-xl mr-3">🏠</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="#campeonatos" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">🏆</span>
+          <span>Campeonatos</span>
+        </a>
+        <a href="#equipas" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">👥</span>
+          <span>Equipas</span>
+        </a>
+        <a href="#atletas" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">🏃</span>
+          <span>Atletas</span>
+        </a>
+        <a href="#jogos" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">⚽</span>
+          <span>Jogos</span>
+        </a>
+        <a href="#video" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">🎥</span>
+          <span>Análise de Vídeo</span>
+        </a>
+        <a href="#io" class="nav-link group flex items-center px-4 py-3 rounded-lg hover:bg-navy-darker transition-colors">
+          <span class="text-xl mr-3">📤📥</span>
+          <span>Exportar/Importar</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Bottom Tab Bar – Mobile -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-navy-dark border-t border-navy-darker z-30">
+      <div class="flex justify-around items-center h-16 text-gray-300">
+        <a href="#dashboard" class="nav-link-mobile flex flex-col items-center p-2 active:text-handball-red">
+          <span class="text-2xl">🏠</span>
+          <span class="text-xs mt-1">Dash</span>
+        </a>
+        <a href="#campeonatos" class="nav-link-mobile flex flex-col items-center p-2">
+          <span class="text-2xl">🏆</span>
+          <span class="text-xs mt-1">Camp.</span>
+        </a>
+        <a href="#equipas" class="nav-link-mobile flex flex-col items-center p-2">
+          <span class="text-2xl">👥</span>
+          <span class="text-xs mt-1">Equipas</span>
+        </a>
+        <a href="#jogos" class="nav-link-mobile flex flex-col items-center p-2">
+          <span class="text-2xl">⚽</span>
+          <span class="text-xs mt-1">Jogos</span>
+        </a>
+        <a href="#video" class="nav-link-mobile flex flex-col items-center p-2">
+          <span class="text-2xl">🎥</span>
+          <span class="text-xs mt-1">Vídeo</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Área de conteúdo principal -->
+    <main id="main-content" class="flex-1 overflow-y-auto bg-white p-4 md:p-6">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold text-navy-darker mb-6">Carregando...</h2>
+        <!-- Aqui é onde o JavaScript vai injectar o conteúdo dependendo da hash -->
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Scripts da aplicação (carrega-os na ordem certa) -->
+  <script src="db.js"></script>
+  <script src="router.js"></script>
+  <script src="campeonatos.js"></script>
+  <script src="equipas.js"></script>
+  <script src="atletas.js"></script>
+  <script src="jogos.js"></script>
+  <script src="video.js"></script>
+  <script src="io.js"></script>
+
+  <!-- Script simples para destacar o link activo -->
+  <script>
+    const allLinks = document.querySelectorAll('.nav-link, .nav-link-mobile');
+    
+    function setActiveLink() {
+      const hash = window.location.hash || '#dashboard';
+      allLinks.forEach(link => {
+        const isActive = link.getAttribute('href') === hash;
+        link.classList.toggle('bg-navy-darker', isActive);
+        link.classList.toggle('text-white', isActive);
+        link.classList.toggle('text-handball-red', isActive);
+        link.classList.toggle('active:text-handball-red', isActive); // mobile
+      });
+    }
+
+    window.addEventListener('hashchange', setActiveLink);
+    window.addEventListener('load', setActiveLink);
+
+    // Clica inicial se não houver hash
+    if (!window.location.hash) {
+      window.location.hash = '#dashboard';
+    }
+  </script>
+
+</body>
+</html>
