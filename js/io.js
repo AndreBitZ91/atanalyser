@@ -146,13 +146,13 @@ async function renderIO() {
 
       progressEl.textContent = `A importar... 0/${totalToImport} registos`;
 
-      // Limpar todas as stores
+      // Limpar todas as stores (usando window.DB.clear não existe, então usamos transaction manual)
       for (const store of stores) {
-        const txClear = window.db.transaction(store, 'readwrite');
-        await new Promise((res, rej) => {
-          const req = txClear.objectStore(store).clear();
-          req.onsuccess = res;
-          req.onerror = rej;
+        await new Promise((resolve, reject) => {
+          const tx = window.DB.db.transaction(store, 'readwrite');  // ← aqui era o erro principal
+          const req = tx.objectStore(store).clear();
+          req.onsuccess = resolve;
+          req.onerror = () => reject(req.error);
         });
       }
 
