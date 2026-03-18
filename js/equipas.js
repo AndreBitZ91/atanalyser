@@ -1,5 +1,5 @@
 // js/equipas.js
-// Gestão de equipas + gestão inline de atletas por equipa
+// Gestão de equipas + logotipo + gestão inline de atletas
 
 async function renderEquipas() {
   const main = document.getElementById('main-content');
@@ -21,6 +21,7 @@ async function renderEquipas() {
       </select>
     </div>
 
+    <!-- Formulário equipa com logotipo -->
     <div id="form-equipa" class="hidden bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8">
       <h3 class="text-lg font-semibold mb-4" id="form-title-equipa">Nova Equipa</h3>
       <form id="form-equipa-submit">
@@ -28,18 +29,29 @@ async function renderEquipas() {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Equipa</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Equipa *</label>
             <input type="text" id="nome-equipa" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Escalão</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Escalão *</label>
             <input type="text" id="escalao" placeholder="ex: Sub-18, Sénior Feminino" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Campeonato</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Campeonato *</label>
             <select id="campeonatoId" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
               <option value="">Seleccione...</option>
             </select>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Logotipo da Equipa (opcional)</label>
+          <input type="file" id="logotipo-equipa" accept="image/*" class="block w-full text-sm text-gray-500
+                 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
+                 hover:file:bg-blue-100 cursor-pointer">
+          <div id="preview-logotipo" class="mt-3 hidden">
+            <img id="preview-img-logotipo" class="h-24 w-auto object-contain rounded border border-gray-300">
           </div>
         </div>
 
@@ -54,6 +66,7 @@ async function renderEquipas() {
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logotipo</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome da Equipa</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campeonato</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Escalão</th>
@@ -69,10 +82,28 @@ async function renderEquipas() {
   await loadCampeonatosForSelects();
   await loadAndRenderEquipasTable();
 
+  // Eventos
   document.getElementById('btn-nova-equipa').addEventListener('click', showNewEquipaForm);
   document.getElementById('btn-cancelar-equipa').addEventListener('click', hideEquipaForm);
   document.getElementById('form-equipa-submit').addEventListener('submit', handleEquipaFormSubmit);
   document.getElementById('filtro-campeonato').addEventListener('change', loadAndRenderEquipasTable);
+
+  // Pré-visualização logotipo
+  document.getElementById('logotipo-equipa').addEventListener('change', previewLogotipo);
+}
+
+function previewLogotipo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const preview = document.getElementById('preview-logotipo');
+    const img = document.getElementById('preview-img-logotipo');
+    img.src = event.target.result;
+    preview.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
 }
 
 async function loadCampeonatosForSelects() {
@@ -102,7 +133,7 @@ async function loadAndRenderEquipasTable() {
   tbody.innerHTML = '';
 
   if (equipas.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Nenhuma equipa encontrada.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-gray-500">Nenhuma equipa encontrada.</td></tr>`;
     return;
   }
 
@@ -118,8 +149,12 @@ async function loadAndRenderEquipasTable() {
 
   equipas.forEach(e => {
     const numAtletas = countAtletasPorEquipa[e.id] || 0;
+    const logoSrc = e.logotipo ? e.logotipo : 'https://via.placeholder.com/40?text=?';
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap">
+        <img src="${logoSrc}" alt="Logotipo" class="h-10 w-10 object-contain rounded-full border border-gray-300">
+      </td>
       <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm font-medium text-gray-900">${e.nome || ''}</div>
       </td>
@@ -142,9 +177,8 @@ async function loadAndRenderEquipasTable() {
     if (btn.classList.contains('btn-edit-equipa')) {
       await editEquipa(id);
     } else if (btn.classList.contains('btn-delete-equipa')) {
-      if (confirm('Tem a certeza que deseja eliminar esta equipa? (os atletas associados também serão eliminados?)')) {
+      if (confirm('Tem a certeza que deseja eliminar esta equipa e os seus atletas?')) {
         await window.DB.delete('equipas', id);
-        // Opcional: eliminar atletas associados
         const atletas = await window.DB.getAll('atletas');
         for (const a of atletas) {
           if (a.equipaId === id) await window.DB.delete('atletas', a.id);
@@ -165,6 +199,8 @@ function showNewEquipaForm() {
   document.getElementById('nome-equipa').value = '';
   document.getElementById('escalao').value = '';
   document.getElementById('campeonatoId').value = '';
+  document.getElementById('logotipo-equipa').value = '';
+  document.getElementById('preview-logotipo').classList.add('hidden');
 }
 
 function hideEquipaForm() {
@@ -183,16 +219,36 @@ async function editEquipa(id) {
   document.getElementById('nome-equipa').value = equipa.nome || '';
   document.getElementById('escalao').value = equipa.escalao || '';
   document.getElementById('campeonatoId').value = equipa.campeonatoId || '';
+
+  // Pré-visualizar logotipo existente
+  if (equipa.logotipo) {
+    document.getElementById('preview-img-logotipo').src = equipa.logotipo;
+    document.getElementById('preview-logotipo').classList.remove('hidden');
+  } else {
+    document.getElementById('preview-logotipo').classList.add('hidden');
+  }
 }
 
 async function handleEquipaFormSubmit(e) {
   e.preventDefault();
 
   const id = document.getElementById('edit-id-equipa').value;
+  const fileInput = document.getElementById('logotipo-equipa');
+  let logotipoBase64 = null;
+
+  if (fileInput.files && fileInput.files[0]) {
+    logotipoBase64 = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(fileInput.files[0]);
+    });
+  }
+
   const data = {
     nome: document.getElementById('nome-equipa').value.trim(),
     escalao: document.getElementById('escalao').value.trim(),
-    campeonatoId: Number(document.getElementById('campeonatoId').value)
+    campeonatoId: Number(document.getElementById('campeonatoId').value),
+    logotipo: logotipoBase64 || (id ? (await window.DB.get('equipas', Number(id)))?.logotipo : null)
   };
 
   if (!data.nome || !data.escalao || !data.campeonatoId) {
@@ -212,7 +268,7 @@ async function handleEquipaFormSubmit(e) {
 }
 
 // ──────────────────────────────────────────────
-// Gestão inline de atletas para uma equipa específica
+// Gestão inline de atletas (mantida igual, mas adiciona foto)
 // ──────────────────────────────────────────────
 
 async function renderAtletasDaEquipa(equipaId) {
@@ -239,15 +295,15 @@ async function renderAtletasDaEquipa(equipaId) {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
             <input type="text" id="nome-atleta-equipa" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Número *</label>
             <input type="number" id="numero-atleta-equipa" min="1" max="99" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Posição</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Posição *</label>
             <select id="posicao-atleta-equipa" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
               <option value="">Seleccione...</option>
               <option value="Guarda-Redes">Guarda-Redes</option>
@@ -259,9 +315,21 @@ async function renderAtletasDaEquipa(equipaId) {
           </div>
         </div>
 
-        <div class="mt-6">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-          <input type="date" id="dataNascimento-atleta-equipa" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
+            <input type="date" id="dataNascimento-atleta-equipa" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-handball-red focus:border-handball-red">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Foto do Atleta (opcional)</label>
+            <input type="file" id="foto-atleta-equipa" accept="image/*" class="block w-full text-sm text-gray-500
+                   file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                   file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
+                   hover:file:bg-blue-100 cursor-pointer">
+            <div id="preview-foto" class="mt-3 hidden">
+              <img id="preview-img-foto" class="h-24 w-24 object-cover rounded-full border border-gray-300">
+            </div>
+          </div>
         </div>
 
         <div class="mt-6 flex gap-3">
@@ -275,6 +343,7 @@ async function renderAtletasDaEquipa(equipaId) {
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posição</th>
@@ -293,6 +362,21 @@ async function renderAtletasDaEquipa(equipaId) {
   document.getElementById('btn-novo-atleta-equipa').addEventListener('click', showNewAtletaFormEquipa);
   document.getElementById('btn-cancelar-atleta-equipa').addEventListener('click', hideAtletaFormEquipa);
   document.getElementById('form-atleta-equipa-submit').addEventListener('submit', handleAtletaFormSubmitEquipa);
+  document.getElementById('foto-atleta-equipa').addEventListener('change', previewFotoAtleta);
+}
+
+function previewFotoAtleta(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const preview = document.getElementById('preview-foto');
+    const img = document.getElementById('preview-img-foto');
+    img.src = event.target.result;
+    preview.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
 }
 
 async function loadAndRenderAtletasDaEquipa(equipaId) {
@@ -305,14 +389,18 @@ async function loadAndRenderAtletasDaEquipa(equipaId) {
   tbody.innerHTML = '';
 
   if (atletas.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Nenhum atleta nesta equipa.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-gray-500">Nenhum atleta nesta equipa.</td></tr>`;
     return;
   }
 
   atletas.forEach(a => {
     const dataNasc = a.dataNascimento ? new Date(a.dataNascimento).toLocaleDateString('pt-PT') : '—';
+    const fotoSrc = a.foto ? a.foto : 'https://via.placeholder.com/40?text=?';
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap">
+        <img src="${fotoSrc}" alt="Foto" class="h-10 w-10 object-cover rounded-full border border-gray-300">
+      </td>
       <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm font-medium text-gray-900">${a.nome || ''}</div>
       </td>
@@ -351,6 +439,8 @@ function showNewAtletaFormEquipa() {
   document.getElementById('numero-atleta-equipa').value = '';
   document.getElementById('posicao-atleta-equipa').value = '';
   document.getElementById('dataNascimento-atleta-equipa').value = '';
+  document.getElementById('foto-atleta-equipa').value = '';
+  document.getElementById('preview-foto').classList.add('hidden');
 }
 
 function hideAtletaFormEquipa() {
@@ -370,6 +460,14 @@ async function editAtletaEquipa(id) {
   document.getElementById('numero-atleta-equipa').value = atleta.numero || '';
   document.getElementById('posicao-atleta-equipa').value = atleta.posicao || '';
   document.getElementById('dataNascimento-atleta-equipa').value = atleta.dataNascimento ? atleta.dataNascimento.split('T')[0] : '';
+
+  // Pré-visualizar foto existente
+  if (atleta.foto) {
+    document.getElementById('preview-img-foto').src = atleta.foto;
+    document.getElementById('preview-foto').classList.remove('hidden');
+  } else {
+    document.getElementById('preview-foto').classList.add('hidden');
+  }
 }
 
 async function handleAtletaFormSubmitEquipa(e) {
@@ -377,13 +475,24 @@ async function handleAtletaFormSubmitEquipa(e) {
 
   const id = document.getElementById('edit-id-atleta-equipa').value;
   const equipaId = Number(document.getElementById('equipaId-atleta-equipa').value);
+  const fileInput = document.getElementById('foto-atleta-equipa');
+  let fotoBase64 = null;
+
+  if (fileInput.files && fileInput.files[0]) {
+    fotoBase64 = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(fileInput.files[0]);
+    });
+  }
 
   const data = {
     nome: document.getElementById('nome-atleta-equipa').value.trim(),
     numero: Number(document.getElementById('numero-atleta-equipa').value),
     posicao: document.getElementById('posicao-atleta-equipa').value,
     dataNascimento: document.getElementById('dataNascimento-atleta-equipa').value,
-    equipaId
+    equipaId,
+    foto: fotoBase64 || (id ? (await window.DB.get('atletas', Number(id)))?.foto : null)
   };
 
   if (!data.nome || !data.numero || !data.posicao || !data.dataNascimento || !data.equipaId) {
