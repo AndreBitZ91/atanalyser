@@ -100,7 +100,7 @@ async function dbDelete(storeName, id) {
 initDB()
   .then(() => {
     window.DB = {
-      db: db,               // ← adicionado: acesso direto ao objeto db do IndexedDB
+      db: db,               // ← esta linha nova permite window.DB.db.transaction(...)
       add: dbAdd,
       getAll: dbGetAll,
       get: dbGet,
